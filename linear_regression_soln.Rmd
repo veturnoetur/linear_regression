@@ -1,0 +1,192 @@
+---
+title: "linear regression exercise"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+```{r}
+
+##   Use the /states.rds/ data set. Fit a model predicting energy consumed per capita (energy) from the percentage of residents living in metropolitan areas (metro). 
+
+
+# set the working directory
+
+setwd("F:/_data science references/_assignments/linear_regression")
+
+# list files in directory
+
+list.files("dataSets") # files in the dataSets folder
+
+# read the states data
+
+states.data <- readRDS("dataSets/states.rds") 
+
+# store labels 
+
+states.info <- data.frame(attributes(states.data)[c("names", "var.labels")])
+
+
+##   1. Examine/ plot the data before fitting the model
+
+# return a summary of the subset of all records based on the energy and metro columns
+
+metEnergy <- subset(states.data, select = c("metro", "energy"))
+
+summary(metEnergy) # returns min, max, median values for each column and a count of NA values
+
+cor(metEnergy) # correlation between energy and metro
+
+# scatterplot of data before fitting model
+
+plot(metEnergy)
+
+
+##   2. Print and interpret the model `summary'
+
+# fit a linear regression model
+
+en.mod <- lm(energy ~ metro, data = states.data)
+
+# Summarize and print the results
+
+summary(en.mod) # show regression coefficients table
+
+# Multiple R-squared:  0.1154
+
+
+```
+
+```{r}
+
+##   3. `plot' the model to look for deviations from modeling assumptions
+
+plot(en.mod)
+
+```
+
+The residuals vs. fitted plot indicate whether the residuals have non-linear patterns. This resultant plot is not evenly distributed vertically with several identified outliers. Inclusion of another predictor may explain the larger x-axis datapoints.
+
+The Q-Q plot returns a straight line distribution of points if the errors are normally distributed. In this case, the points deviate in one extremity. This indicates that the data base more extreme values than would be expected if the points would otherwise be normally distributed. 
+
+The scale-location plot result challenges the assumption of homosecedasiticty or equal variance, since the resulting red line us displayed at an angle. Ideally, the line would be horizontal if the residuals are spread equally along the range of predictors.
+
+The residuals vs. leverage plot helps to identify points that may influence the model more than others (if any exist); while data may contain extreme values, these are not considered to be influential to the determination of the regression line (i.e. results will not change notably with the inclusion or exclusion of the points from the overall analysis). Cook's distance indicated by dashed, red lines; influential points are identified with high Cook's distance scores. In this case, no particular points are considered to be highly influential. 
+
+```{r}
+
+##   Select one or more additional predictors to add to your model and repeat steps 1-3. Is this model significantly better than the model with /metro/ as the only predictor?
+
+# add "waste" data to the model to check for improvements
+
+##   1. Examine/ plot the data before fitting the model
+
+# return a summary of the subset of all records based on the energy and csat columns
+
+metEnergy2 <- subset(states.data, select = c("metro", "waste", "energy"))
+
+summary(metEnergy2) # returns min, max, median values for each column and a count of NA values
+
+cor(metEnergy2)
+
+# scatterplot of data before fitting model
+
+plot(metEnergy2)
+
+
+##   2. Print and interpret the model `summary'
+
+# fit a linear regression model
+
+en.mod2 <- lm(energy ~ metro + waste, data = states.data)
+
+# Summarize and print the results
+
+summary(en.mod2) # show regression coefficients table
+
+
+# Multiple R-squared:  0.1253 compared with 0.1154 indicates a slight improvement
+
+
+```
+
+```{r}
+
+##   Select one or more additional predictors to add to your model and repeat steps 1-3. Is this model significantly better than the model with /metro/ as the only predictor?
+
+# add "waste" and "density" data to the model to check for improvements
+
+##   1. Examine/ plot the data before fitting the model
+
+# return a summary of the subset of all records based on the energy and csat columns
+
+metEnergy3 <- subset(states.data, select = c("metro", "waste", "density", "energy"))
+
+summary(metEnergy3) # returns min, max, median values for each column and a count of NA values
+
+cor(metEnergy3)
+
+# scatterplot of data before fitting model
+
+plot(metEnergy3)
+
+
+##   2. Print and interpret the model `summary'
+
+# fit a linear regression model
+
+en.mod3 <- lm(energy ~ metro + waste + density, data = states.data)
+
+# Summarize and print the results
+
+summary(en.mod3) # show regression coefficients table
+
+
+# Multiple R-squared:  0.1508 (waste, metro and density) compared with 0.1253 (waste and metro) and 0.1154 (metro only) indicates a slight improvement
+
+```
+
+```{r}
+
+## Exercise: interactions and factors
+
+##   Use the states data set.
+
+##   1. Add on to the regression equation that you created in exercise 1 by generating an interaction term and testing the interaction.
+
+# add an interaction term to the model
+
+en.modInt <- lm(energy ~ metro*density, data = states.data)
+
+# return results of adding the interaction term
+
+coef(summary(en.modInt))
+
+
+```
+
+```{r}
+
+##   2. Try adding region to the model. Are there significant differences across the four regions?
+
+str(states.data$region)
+states.data$region <- factor(states.data$region)
+
+# add region to the model
+
+en.modReg <- lm(energy ~ region, data = states.data)
+
+# show the results: regression coefficients and ANOVA tables
+
+coef(summary(en.modReg)) 
+anova(en.modReg) 
+
+
+```
+
+A larger, insignificant p-value suggests that the predictor are not associated to changes in the response; south and midwest p-values > 0.05, indicate that these regions are not statistically significant, whereas northeast region with a p-value of 0.01 is likely to be a meaningful addition to the model.  
+
+
+
